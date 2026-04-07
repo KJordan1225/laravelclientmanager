@@ -15,17 +15,13 @@
                     <div class="form-group">
                         <label>Company Name</label>
                         <input v-model="form.company_name" class="form-control" type="text">
-                        <small v-if="errors.company_name" style="color: var(--danger);">
-                            {{ errors.company_name[0] }}
-                        </small>
+                        <FormError :message="errors.company_name?.[0]" />
                     </div>
 
                     <div class="form-group">
                         <label>Client Code</label>
                         <input v-model="form.client_code" class="form-control" type="text">
-                        <small v-if="errors.client_code" style="color: var(--danger);">
-                            {{ errors.client_code[0] }}
-                        </small>
+                        <FormError :message="errors.client_code?.[0]" />
                     </div>
 
                     <div class="form-group">
@@ -36,17 +32,13 @@
                     <div class="form-group">
                         <label>Website</label>
                         <input v-model="form.website" class="form-control" type="url">
-                        <small v-if="errors.website" style="color: var(--danger);">
-                            {{ errors.website[0] }}
-                        </small>
+                        <FormError :message="errors.website?.[0]" />
                     </div>
 
                     <div class="form-group">
                         <label>Email</label>
                         <input v-model="form.email" class="form-control" type="email">
-                        <small v-if="errors.email" style="color: var(--danger);">
-                            {{ errors.email[0] }}
-                        </small>
+                        <FormError :message="errors.email?.[0]" />
                     </div>
 
                     <div class="form-group">
@@ -81,9 +73,7 @@
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                         </select>
-                        <small v-if="errors.status" style="color: var(--danger);">
-                            {{ errors.status[0] }}
-                        </small>
+                        <FormError :message="errors.status?.[0]" />
                     </div>
 
                     <div class="form-group">
@@ -131,6 +121,7 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useClientStore } from '../stores/clientStore';
 import PageHeader from '../components/PageHeader.vue';
+import FormError from '../components/FormError.vue';
 
 const props = defineProps({
     id: {

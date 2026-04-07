@@ -29,7 +29,7 @@
                 <h3 style="margin-top: 0;">Commercial Terms</h3>
                 <p><strong>Hourly Rate:</strong> {{ money(client.hourly_rate) }}</p>
                 <p><strong>Credit Limit:</strong> {{ money(client.credit_limit) }}</p>
-                <p><strong>Onboarded:</strong> {{ client.onboarded_at || '—' }}</p>
+                <p><strong>Onboarded:</strong> {{ readableDate(client.onboarded_at) }}</p>
                 <p style="margin-bottom: 0;"><strong>Address:</strong> {{ client.address || '—' }}</p>
             </div>
 
@@ -171,7 +171,7 @@
                             <div>
                                 <strong>{{ note.title }}</strong>
                                 <div style="color: var(--muted); margin-top: 0.35rem;">
-                                    {{ note.created_by || 'System' }} · {{ note.created_at }}
+                                    {{ note.created_by || 'System' }} · {{ readableDateTime(note.created_at) }}
                                 </div>
                                 <div style="margin-top: 0.5rem; white-space: pre-line;">
                                     {{ note.body }}
@@ -255,7 +255,7 @@
                                 </div>
                                 <div style="color: var(--muted); margin-top: 0.35rem;">
                                     Priority: {{ task.priority }} |
-                                    Due: {{ task.due_date || '—' }} |
+                                    Due: {{ readableDate(task.due_date) }} |
                                     Assigned: {{ task.assigned_to || '—' }}
                                 </div>
                                 <div v-if="task.description" style="margin-top: 0.5rem;">
@@ -287,6 +287,7 @@ import { useTaskStore } from '../stores/taskStore';
 import PageHeader from '../components/PageHeader.vue';
 import StatusBadge from '../components/StatusBadge.vue';
 import ConfirmButton from '../components/ConfirmButton.vue';
+import { money, readableDate, readableDateTime } from '../utils/formatters';
 
 const props = defineProps({
     id: {
@@ -345,14 +346,6 @@ const fullLocation = computed(() => {
 
     return parts.length ? parts.join(', ') : '—';
 });
-
-function money(value) {
-    if (value === null || value === undefined || value === '') {
-        return '—';
-    }
-
-    return `$${Number(value).toFixed(2)}`;
-}
 
 async function loadClient() {
     await clientStore.fetchClient(props.id);

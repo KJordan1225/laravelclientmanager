@@ -10,7 +10,10 @@ export const useClientStore = defineStore('clientStore', {
             active_clients: 0,
             lead_clients: 0,
             open_tasks: 0,
+            recent_clients: [],
         },
+        meta: null,
+        links: null,
         loading: false,
         errors: {},
     }),
@@ -23,9 +26,12 @@ export const useClientStore = defineStore('clientStore', {
 
         async fetchClients(params = {}) {
             this.loading = true;
+
             try {
                 const { data } = await axios.get('/clients', { params });
-                this.clients = data.data ?? data;
+                this.clients = data.data ?? [];
+                this.meta = data.meta ?? null;
+                this.links = data.links ?? null;
             } finally {
                 this.loading = false;
             }
@@ -33,10 +39,11 @@ export const useClientStore = defineStore('clientStore', {
 
         async fetchClient(id) {
             this.loading = true;
+
             try {
                 const { data } = await axios.get(`/clients/${id}`);
-                this.client = data;
-                return data;
+                this.client = data.data ?? data;
+                return this.client;
             } finally {
                 this.loading = false;
             }
@@ -44,6 +51,7 @@ export const useClientStore = defineStore('clientStore', {
 
         async createClient(payload) {
             this.errors = {};
+
             try {
                 const { data } = await axios.post('/clients', payload);
                 return data;
@@ -57,6 +65,7 @@ export const useClientStore = defineStore('clientStore', {
 
         async updateClient(id, payload) {
             this.errors = {};
+
             try {
                 const { data } = await axios.put(`/clients/${id}`, payload);
                 return data;

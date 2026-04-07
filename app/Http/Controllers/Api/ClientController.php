@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ClientResource;
 use App\Models\Client;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
@@ -14,7 +15,7 @@ class ClientController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Client::query();
+        $query = Client::query()->withCount(['contacts', 'notes', 'tasks']);
 
         if ($request->filled('search')) {
             $search = trim($request->string('search'));
@@ -32,9 +33,23 @@ class ClientController extends Controller
             $query->where('status', $request->string('status'));
         }
 
-        $clients = $query->latest()->paginate(12);
+        $clients = $query->latest()->paginate(10);
 
-        return response()->json($clients);
+        return response()->json([
+            'data' => ClientResource::collection($clients->items()),
+            'meta' => [
+                'current_page' => $clients->currentPage(),
+                'last_page' => $clients->lastPage(),
+                'per_page' => $clients->perPage(),
+                'total' => $clients->total(),
+                'from' => $clients->firstItem(),
+                'to' => $clients->lastItem(),
+            ],
+            'links' => [
+                'prev' => $clients->previousPageUrl(),
+                'next' => $clients->nextPageUrl(),
+            ],
+        ]);
     }
 
     public function store(Request $request): JsonResponse
@@ -64,18 +79,14 @@ class ClientController extends Controller
 
         $client = Client::create($validated);
 
-        return response()->json($client, 201);
+        return response()->json(new ClientResource($client), 201);
     }
 
     public function show(Client $client): JsonResponse
     {
-        $client->load([
-            'contacts',
-            'notes',
-            'tasks',
-        ]);
+        $client->load(['contacts', 'notes', 'tasks']);
 
-        return response()->json($client);
+        return response()->json(new ClientResource($client));
     }
 
     public function update(Request $request, Client $client): JsonResponse
@@ -106,7 +117,7 @@ class ClientController extends Controller
 
         $client->update($validated);
 
-        return response()->json($client->fresh());
+        return response()->json(new ClientResource($client->fresh()));
     }
 
     public function destroy(Client $client): JsonResponse
@@ -120,11 +131,16 @@ class ClientController extends Controller
 
     public function stats(): JsonResponse
     {
+        $recentClients = Client::latest()
+            ->take(5)
+            ->get(['id', 'company_name', 'client_code', 'status', 'created_at']);
+
         return response()->json([
             'total_clients' => Client::count(),
             'active_clients' => Client::where('status', 'active')->count(),
             'lead_clients' => Client::where('status', 'lead')->count(),
             'open_tasks' => Task::whereIn('status', ['pending', 'in_progress'])->count(),
+            'recent_clients' => $recentClients,
         ]);
     }
 
