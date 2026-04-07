@@ -3,13 +3,13 @@ import axios from 'axios';
 
 export const useContactStore = defineStore('contactStore', {
     state: () => ({
-        contacts: [],
         errors: {},
     }),
 
     actions: {
         async createContact(payload) {
             this.errors = {};
+
             try {
                 const { data } = await axios.post('/contacts', payload);
                 return data;
@@ -23,6 +23,7 @@ export const useContactStore = defineStore('contactStore', {
 
         async updateContact(id, payload) {
             this.errors = {};
+
             try {
                 const { data } = await axios.put(`/contacts/${id}`, payload);
                 return data;

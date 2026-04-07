@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreNoteRequest;
+use App\Http\Requests\UpdateNoteRequest;
 use App\Models\Note;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,16 +22,9 @@ class NoteController extends Controller
         return response()->json($query->get());
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreNoteRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'client_id' => ['required', 'exists:clients,id'],
-            'title' => ['required', 'string', 'max:255'],
-            'body' => ['required', 'string'],
-            'created_by' => ['nullable', 'string', 'max:255'],
-        ]);
-
-        $note = Note::create($validated);
+        $note = Note::create($request->validated());
 
         return response()->json($note->load('client'), 201);
     }
@@ -39,16 +34,9 @@ class NoteController extends Controller
         return response()->json($note->load('client'));
     }
 
-    public function update(Request $request, Note $note): JsonResponse
+    public function update(UpdateNoteRequest $request, Note $note): JsonResponse
     {
-        $validated = $request->validate([
-            'client_id' => ['required', 'exists:clients,id'],
-            'title' => ['required', 'string', 'max:255'],
-            'body' => ['required', 'string'],
-            'created_by' => ['nullable', 'string', 'max:255'],
-        ]);
-
-        $note->update($validated);
+        $note->update($request->validated());
 
         return response()->json($note->fresh()->load('client'));
     }

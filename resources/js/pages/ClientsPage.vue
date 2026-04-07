@@ -31,14 +31,24 @@
                     </select>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 0; justify-content: end;">
-                    <label>&nbsp;</label>
-                    <button class="btn btn-secondary" @click="resetFilters">
-                        Reset
-                    </button>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Sort</label>
+                    <select v-model="filters.sort" class="form-control">
+                        <option value="latest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="company_asc">Company A-Z</option>
+                        <option value="company_desc">Company Z-A</option>
+                    </select>
                 </div>
             </div>
+
+            <div style="margin-top: 1rem;">
+                <button class="btn btn-secondary" @click="resetFilters">
+                    Reset
+                </button>
+            </div>
         </div>
+
 
         <div class="card">
             <div v-if="loading" style="padding: 1rem;">Loading clients...</div>
@@ -121,16 +131,19 @@
 <script setup>
 import { computed, onMounted, reactive, watch } from 'vue';
 import { useClientStore } from '../stores/clientStore';
+import { useUiStore } from '../stores/uiStore';
 import PageHeader from '../components/PageHeader.vue';
 import StatusBadge from '../components/StatusBadge.vue';
 import ConfirmButton from '../components/ConfirmButton.vue';
 import PaginationControls from '../components/PaginationControls.vue';
 
 const clientStore = useClientStore();
+const uiStore = useUiStore();
 
 const filters = reactive({
     search: '',
     status: '',
+    sort: 'latest',
     page: 1,
 });
 
@@ -142,18 +155,21 @@ async function loadClients() {
     await clientStore.fetchClients({
         search: filters.search,
         status: filters.status,
+        sort: filters.sort,
         page: filters.page,
     });
 }
 
 async function removeClient(id) {
     await clientStore.deleteClient(id);
+    uiStore.toast('Client deleted successfully.');
     await loadClients();
 }
 
 function resetFilters() {
     filters.search = '';
     filters.status = '';
+    filters.sort = 'latest';
     filters.page = 1;
     loadClients();
 }
@@ -166,7 +182,7 @@ function changePage(page) {
 let timeoutId = null;
 
 watch(
-    () => [filters.search, filters.status],
+    () => [filters.search, filters.status, filters.sort],
     () => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {

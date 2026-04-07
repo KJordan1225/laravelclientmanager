@@ -1,5 +1,7 @@
 <template>
     <div class="app-layout">
+        <ToastContainer />
+
         <aside class="sidebar" :class="{ 'sidebar-open': mobileMenuOpen }">
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
                 <h2 style="margin-bottom: 0;">Client Manager</h2>
@@ -30,6 +32,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import ToastContainer from './components/ToastContainer.vue';
 
 const mobileMenuOpen = ref(false);
 </script>

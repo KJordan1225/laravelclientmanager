@@ -46,8 +46,8 @@
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
                         <h3 style="margin-top: 0;">Contacts</h3>
-                        <button class="btn btn-primary" @click="showContactForm = !showContactForm">
-                            {{ showContactForm ? 'Close' : 'Add Contact' }}
+                        <button class="btn btn-primary" @click="startNewContact">
+                            {{ showContactForm ? 'Close Form' : 'Add Contact' }}
                         </button>
                     </div>
 
@@ -96,7 +96,15 @@
                             <textarea v-model="contactForm.notes" class="form-control"></textarea>
                         </div>
 
-                        <button class="btn btn-primary" type="submit">Save Contact</button>
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <button class="btn btn-primary" type="submit">
+                                {{ editingContactId ? 'Update Contact' : 'Save Contact' }}
+                            </button>
+
+                            <button class="btn btn-secondary" type="button" @click="resetContactForm">
+                                Cancel
+                            </button>
+                        </div>
                     </form>
 
                     <div v-if="client.contacts.length === 0" style="color: var(--muted);">
@@ -121,9 +129,10 @@
                                 <div v-if="contact.notes" style="margin-top: 0.35rem;">{{ contact.notes }}</div>
                             </div>
 
-                            <ConfirmButton @confirm="removeContact(contact.id)">
-                                Delete
-                            </ConfirmButton>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button class="btn btn-secondary" @click="editContact(contact)">Edit</button>
+                                <ConfirmButton @confirm="removeContact(contact.id)">Delete</ConfirmButton>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -133,8 +142,8 @@
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
                         <h3 style="margin-top: 0;">Notes</h3>
-                        <button class="btn btn-primary" @click="showNoteForm = !showNoteForm">
-                            {{ showNoteForm ? 'Close' : 'Add Note' }}
+                        <button class="btn btn-primary" @click="startNewNote">
+                            {{ showNoteForm ? 'Close Form' : 'Add Note' }}
                         </button>
                     </div>
 
@@ -154,7 +163,15 @@
                             <input v-model="noteForm.created_by" class="form-control" type="text">
                         </div>
 
-                        <button class="btn btn-primary" type="submit">Save Note</button>
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <button class="btn btn-primary" type="submit">
+                                {{ editingNoteId ? 'Update Note' : 'Save Note' }}
+                            </button>
+
+                            <button class="btn btn-secondary" type="button" @click="resetNoteForm">
+                                Cancel
+                            </button>
+                        </div>
                     </form>
 
                     <div v-if="client.notes.length === 0" style="color: var(--muted);">
@@ -178,9 +195,10 @@
                                 </div>
                             </div>
 
-                            <ConfirmButton @confirm="removeNote(note.id)">
-                                Delete
-                            </ConfirmButton>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button class="btn btn-secondary" @click="editNote(note)">Edit</button>
+                                <ConfirmButton @confirm="removeNote(note.id)">Delete</ConfirmButton>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -188,8 +206,8 @@
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
                         <h3 style="margin-top: 0;">Tasks</h3>
-                        <button class="btn btn-primary" @click="showTaskForm = !showTaskForm">
-                            {{ showTaskForm ? 'Close' : 'Add Task' }}
+                        <button class="btn btn-primary" @click="startNewTask">
+                            {{ showTaskForm ? 'Close Form' : 'Add Task' }}
                         </button>
                     </div>
 
@@ -234,7 +252,15 @@
                             <textarea v-model="taskForm.description" class="form-control"></textarea>
                         </div>
 
-                        <button class="btn btn-primary" type="submit">Save Task</button>
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <button class="btn btn-primary" type="submit">
+                                {{ editingTaskId ? 'Update Task' : 'Save Task' }}
+                            </button>
+
+                            <button class="btn btn-secondary" type="button" @click="resetTaskForm">
+                                Cancel
+                            </button>
+                        </div>
                     </form>
 
                     <div v-if="client.tasks.length === 0" style="color: var(--muted);">
@@ -263,9 +289,10 @@
                                 </div>
                             </div>
 
-                            <ConfirmButton @confirm="removeTask(task.id)">
-                                Delete
-                            </ConfirmButton>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button class="btn btn-secondary" @click="editTask(task)">Edit</button>
+                                <ConfirmButton @confirm="removeTask(task.id)">Delete</ConfirmButton>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -284,6 +311,7 @@ import { useClientStore } from '../stores/clientStore';
 import { useContactStore } from '../stores/contactStore';
 import { useNoteStore } from '../stores/noteStore';
 import { useTaskStore } from '../stores/taskStore';
+import { useUiStore } from '../stores/uiStore';
 import PageHeader from '../components/PageHeader.vue';
 import StatusBadge from '../components/StatusBadge.vue';
 import ConfirmButton from '../components/ConfirmButton.vue';
@@ -300,12 +328,17 @@ const clientStore = useClientStore();
 const contactStore = useContactStore();
 const noteStore = useNoteStore();
 const taskStore = useTaskStore();
+const uiStore = useUiStore();
 
 const client = computed(() => clientStore.client);
 
 const showContactForm = ref(false);
 const showNoteForm = ref(false);
 const showTaskForm = ref(false);
+
+const editingContactId = ref(null);
+const editingNoteId = ref(null);
+const editingTaskId = ref(null);
 
 const contactForm = reactive({
     client_id: props.id,
@@ -351,74 +384,193 @@ async function loadClient() {
     await clientStore.fetchClient(props.id);
 }
 
+function startNewContact() {
+    if (showContactForm.value && !editingContactId.value) {
+        resetContactForm();
+        return;
+    }
+
+    editingContactId.value = null;
+    showContactForm.value = true;
+}
+
+function startNewNote() {
+    if (showNoteForm.value && !editingNoteId.value) {
+        resetNoteForm();
+        return;
+    }
+
+    editingNoteId.value = null;
+    showNoteForm.value = true;
+}
+
+function startNewTask() {
+    if (showTaskForm.value && !editingTaskId.value) {
+        resetTaskForm();
+        return;
+    }
+
+    editingTaskId.value = null;
+    showTaskForm.value = true;
+}
+
+function resetContactForm() {
+    editingContactId.value = null;
+    showContactForm.value = false;
+
+    Object.assign(contactForm, {
+        client_id: props.id,
+        first_name: '',
+        last_name: '',
+        job_title: '',
+        email: '',
+        phone: '',
+        mobile: '',
+        is_primary: false,
+        notes: '',
+    });
+}
+
+function resetNoteForm() {
+    editingNoteId.value = null;
+    showNoteForm.value = false;
+
+    Object.assign(noteForm, {
+        client_id: props.id,
+        title: '',
+        body: '',
+        created_by: '',
+    });
+}
+
+function resetTaskForm() {
+    editingTaskId.value = null;
+    showTaskForm.value = false;
+
+    Object.assign(taskForm, {
+        client_id: props.id,
+        title: '',
+        description: '',
+        priority: 'medium',
+        status: 'pending',
+        due_date: '',
+        assigned_to: '',
+    });
+}
+
+function editContact(contact) {
+    editingContactId.value = contact.id;
+    showContactForm.value = true;
+
+    Object.assign(contactForm, {
+        client_id: props.id,
+        first_name: contact.first_name || '',
+        last_name: contact.last_name || '',
+        job_title: contact.job_title || '',
+        email: contact.email || '',
+        phone: contact.phone || '',
+        mobile: contact.mobile || '',
+        is_primary: !!contact.is_primary,
+        notes: contact.notes || '',
+    });
+}
+
+function editNote(note) {
+    editingNoteId.value = note.id;
+    showNoteForm.value = true;
+
+    Object.assign(noteForm, {
+        client_id: props.id,
+        title: note.title || '',
+        body: note.body || '',
+        created_by: note.created_by || '',
+    });
+}
+
+function editTask(task) {
+    editingTaskId.value = task.id;
+    showTaskForm.value = true;
+
+    Object.assign(taskForm, {
+        client_id: props.id,
+        title: task.title || '',
+        description: task.description || '',
+        priority: task.priority || 'medium',
+        status: task.status || 'pending',
+        due_date: task.due_date || '',
+        assigned_to: task.assigned_to || '',
+    });
+}
+
 async function submitContact() {
     try {
-        await contactStore.createContact({ ...contactForm });
-        Object.assign(contactForm, {
-            client_id: props.id,
-            first_name: '',
-            last_name: '',
-            job_title: '',
-            email: '',
-            phone: '',
-            mobile: '',
-            is_primary: false,
-            notes: '',
-        });
-        showContactForm.value = false;
+        if (editingContactId.value) {
+            await contactStore.updateContact(editingContactId.value, { ...contactForm });
+            uiStore.toast('Contact updated successfully.');
+        } else {
+            await contactStore.createContact({ ...contactForm });
+            uiStore.toast('Contact created successfully.');
+        }
+
+        resetContactForm();
         await loadClient();
     } catch (error) {
+        uiStore.toast('Unable to save contact.', 'error');
         console.error(error);
     }
 }
 
 async function submitNote() {
     try {
-        await noteStore.createNote({ ...noteForm });
-        Object.assign(noteForm, {
-            client_id: props.id,
-            title: '',
-            body: '',
-            created_by: '',
-        });
-        showNoteForm.value = false;
+        if (editingNoteId.value) {
+            await noteStore.updateNote(editingNoteId.value, { ...noteForm });
+            uiStore.toast('Note updated successfully.');
+        } else {
+            await noteStore.createNote({ ...noteForm });
+            uiStore.toast('Note created successfully.');
+        }
+
+        resetNoteForm();
         await loadClient();
     } catch (error) {
+        uiStore.toast('Unable to save note.', 'error');
         console.error(error);
     }
 }
 
 async function submitTask() {
     try {
-        await taskStore.createTask({ ...taskForm });
-        Object.assign(taskForm, {
-            client_id: props.id,
-            title: '',
-            description: '',
-            priority: 'medium',
-            status: 'pending',
-            due_date: '',
-            assigned_to: '',
-        });
-        showTaskForm.value = false;
+        if (editingTaskId.value) {
+            await taskStore.updateTask(editingTaskId.value, { ...taskForm });
+            uiStore.toast('Task updated successfully.');
+        } else {
+            await taskStore.createTask({ ...taskForm });
+            uiStore.toast('Task created successfully.');
+        }
+
+        resetTaskForm();
         await loadClient();
     } catch (error) {
+        uiStore.toast('Unable to save task.', 'error');
         console.error(error);
     }
 }
 
 async function removeContact(id) {
     await contactStore.deleteContact(id);
+    uiStore.toast('Contact deleted successfully.');
     await loadClient();
 }
 
 async function removeNote(id) {
     await noteStore.deleteNote(id);
+    uiStore.toast('Note deleted successfully.');
     await loadClient();
 }
 
 async function removeTask(id) {
     await taskStore.deleteTask(id);
+    uiStore.toast('Task deleted successfully.');
     await loadClient();
 }
 

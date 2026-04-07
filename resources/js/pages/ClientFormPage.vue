@@ -120,6 +120,7 @@
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useClientStore } from '../stores/clientStore';
+import { useUiStore } from '../stores/uiStore';
 import PageHeader from '../components/PageHeader.vue';
 import FormError from '../components/FormError.vue';
 
@@ -132,6 +133,7 @@ const props = defineProps({
 
 const router = useRouter();
 const clientStore = useClientStore();
+const uiStore = useUiStore();
 const submitting = ref(false);
 
 const form = reactive({
@@ -181,14 +183,15 @@ async function submitForm() {
     try {
         if (isEdit.value) {
             await clientStore.updateClient(props.id, { ...form });
-            window.alert('Client updated successfully.');
+            uiStore.toast('Client updated successfully.');
         } else {
             await clientStore.createClient({ ...form });
-            window.alert('Client created successfully.');
+            uiStore.toast('Client created successfully.');
         }
 
         router.push('/clients');
     } catch (error) {
+        uiStore.toast('Please fix the form errors and try again.', 'error');
         console.error(error);
     } finally {
         submitting.value = false;

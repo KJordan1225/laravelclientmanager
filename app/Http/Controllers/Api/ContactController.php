@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreContactRequest;
+use App\Http\Requests\UpdateContactRequest;
 use App\Models\Contact;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,19 +22,9 @@ class ContactController extends Controller
         return response()->json($query->get());
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreContactRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'client_id' => ['required', 'exists:clients,id'],
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-            'job_title' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
-            'mobile' => ['nullable', 'string', 'max:50'],
-            'is_primary' => ['nullable', 'boolean'],
-            'notes' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validated();
 
         if (($validated['is_primary'] ?? false) === true) {
             Contact::where('client_id', $validated['client_id'])->update(['is_primary' => false]);
@@ -48,19 +40,9 @@ class ContactController extends Controller
         return response()->json($contact->load('client'));
     }
 
-    public function update(Request $request, Contact $contact): JsonResponse
+    public function update(UpdateContactRequest $request, Contact $contact): JsonResponse
     {
-        $validated = $request->validate([
-            'client_id' => ['required', 'exists:clients,id'],
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-            'job_title' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
-            'mobile' => ['nullable', 'string', 'max:50'],
-            'is_primary' => ['nullable', 'boolean'],
-            'notes' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validated();
 
         if (($validated['is_primary'] ?? false) === true) {
             Contact::where('client_id', $validated['client_id'])

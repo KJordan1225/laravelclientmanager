@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskRequest;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class TaskController extends Controller
 {
@@ -19,23 +20,15 @@ class TaskController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where('status', $request->string('status'));
+            $query->where('status', $request->string('status')->toString());
         }
 
         return response()->json($query->get());
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreTaskRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'client_id' => ['required', 'exists:clients,id'],
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'priority' => ['required', Rule::in(['low', 'medium', 'high'])],
-            'status' => ['required', Rule::in(['pending', 'in_progress', 'completed'])],
-            'due_date' => ['nullable', 'date'],
-            'assigned_to' => ['nullable', 'string', 'max:255'],
-        ]);
+        $validated = $request->validated();
 
         if ($validated['status'] === 'completed') {
             $validated['completed_at'] = now();
@@ -51,17 +44,9 @@ class TaskController extends Controller
         return response()->json($task->load('client'));
     }
 
-    public function update(Request $request, Task $task): JsonResponse
+    public function update(UpdateTaskRequest $request, Task $task): JsonResponse
     {
-        $validated = $request->validate([
-            'client_id' => ['required', 'exists:clients,id'],
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'priority' => ['required', Rule::in(['low', 'medium', 'high'])],
-            'status' => ['required', Rule::in(['pending', 'in_progress', 'completed'])],
-            'due_date' => ['nullable', 'date'],
-            'assigned_to' => ['nullable', 'string', 'max:255'],
-        ]);
+        $validated = $request->validated();
 
         if ($validated['status'] === 'completed' && is_null($task->completed_at)) {
             $validated['completed_at'] = now();
