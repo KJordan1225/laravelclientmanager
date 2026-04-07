@@ -9,6 +9,7 @@ export const useTaskStore = defineStore('taskStore', {
     actions: {
         async createTask(payload) {
             this.errors = {};
+
             try {
                 const { data } = await axios.post('/tasks', payload);
                 return data;
@@ -22,6 +23,7 @@ export const useTaskStore = defineStore('taskStore', {
 
         async updateTask(id, payload) {
             this.errors = {};
+
             try {
                 const { data } = await axios.put(`/tasks/${id}`, payload);
                 return data;
@@ -32,3 +34,9 @@ export const useTaskStore = defineStore('taskStore', {
                 throw error;
             }
         },
+
+        async deleteTask(id) {
+            await axios.delete(`/tasks/${id}`);
+        },
+    },
+});

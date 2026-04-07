@@ -3,47 +3,62 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Note;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class NoteController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request): JsonResponse
     {
-        //
+        $query = Note::with('client')->latest();
+
+        if ($request->filled('client_id')) {
+            $query->where('client_id', $request->integer('client_id'));
+        }
+
+        return response()->json($query->get());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        //
+        $validated = $request->validate([
+            'client_id' => ['required', 'exists:clients,id'],
+            'title' => ['required', 'string', 'max:255'],
+            'body' => ['required', 'string'],
+            'created_by' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $note = Note::create($validated);
+
+        return response()->json($note->load('client'), 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Note $note): JsonResponse
     {
-        //
+        return response()->json($note->load('client'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Note $note): JsonResponse
     {
-        //
+        $validated = $request->validate([
+            'client_id' => ['required', 'exists:clients,id'],
+            'title' => ['required', 'string', 'max:255'],
+            'body' => ['required', 'string'],
+            'created_by' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $note->update($validated);
+
+        return response()->json($note->fresh()->load('client'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(Note $note): JsonResponse
     {
-        //
+        $note->delete();
+
+        return response()->json([
+            'message' => 'Note deleted successfully.',
+        ]);
     }
 }
